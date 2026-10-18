@@ -50,6 +50,7 @@ func exitCodeForError(err error) int {
 	if strings.Contains(s, "unknown command") ||
 		strings.Contains(s, "no command given") ||
 		strings.Contains(s, "takes exactly one asset") ||
+		strings.Contains(s, "takes no arguments") ||
 		strings.Contains(s, "invalid asset") ||
 		strings.Contains(s, "expected asset") ||
 		strings.Contains(s, "bad request") ||
@@ -121,6 +122,8 @@ func usage(w io.Writer) {
                                   print the registry's attest/revoke events for an asset
                                   (CODE-ISSUER or SAC address), bounded by RPC event retention
   assay serve [-addr]             serve the HTTP API and UI
+  assay version                   print scanner identity, preimage versions,
+                                  Go version and VCS revision (also -version)
 
 Every command that scans accepts:
   -cache-directory-ttl D   reuse a curated directory answer for D (0 disables)
@@ -167,6 +170,8 @@ func runWith(args []string, d commandDeps) error {
 		return runRegistryHistory(args[1:], d)
 	case "serve":
 		return d.serve(args[1:], log)
+	case "version", "-version", "--version":
+		return runVersion(args[1:], d)
 	default:
 		usage(d.stderr)
 		return fmt.Errorf("unknown command %q", args[0])

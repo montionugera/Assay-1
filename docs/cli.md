@@ -1,6 +1,6 @@
 # The CLI
 
-`assay` is one binary with five subcommands. All of them print human-readable
+`assay` is one binary with several subcommands. Most of them print human-readable
 JSON by default; every subcommand that produces structured output also has a
 `-raw` form that prints tab-separated values, for scripts and CI.
 
@@ -14,6 +14,8 @@ usage:
                                   print the asset's observation history
   assay serve [-addr] [-history PATH]
                                   serve the HTTP API and UI
+  assay version                   print scanner identity, preimage versions,
+                                  Go version and VCS revision (also -version)
 ```
 
 Commands that scan also accept:
@@ -145,3 +147,29 @@ derived transitions. `-history` points that store at an append-only JSON Lines
 log so it survives a restart; without it, history is in memory and lost when the
 process exits. The default retention is 256 observations per asset and the
 policy is in [history.md](history.md).
+
+## assay version
+
+Prints what produced this binary, one `KEY<TAB>VALUE` line each. `assay
+-version` and `assay --version` are the same command.
+
+```
+$ ./assay version
+scanner	v1.2.3
+preimage	assay-evidence-v1,assay-evidence-v2,assay-evidence-v3
+go	go1.24.0
+vcs.revision	0123abcd...
+vcs.modified	false
+```
+
+- `scanner` — the scanner identity the v3 preimage's `scanner` line binds:
+  the module version, or `devel` for an unstamped build. This value changes
+  `evidence_hash` (see the `ScannerIdentity` comment in
+  [`internal/attest/attest.go`](../internal/attest/attest.go)).
+- `preimage` — every preimage version this binary can emit or verify.
+- `go` — the Go toolchain the binary was built with.
+- `vcs.revision` — the commit the binary was built from, or `unknown` when the
+  build carries no VCS stamp (`go run`, `go test`, `-buildvcs=false`).
+  `vcs.modified` is printed only when the build records it, and is `true` if the
+  working tree was dirty. Neither is part of any hash. Include them in bug
+  reports.
